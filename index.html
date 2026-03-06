@@ -271,8 +271,8 @@
         const fileName = `poster-${Date.now()}.jpg`;
 
         // SAS token del contenedor con permisos lectura+escritura (válido hasta 2028)
-        const SAS_WRITE = 'sp=rcw&st=2026-03-06T20:05:50Z&se=2028-03-07T04:20:50Z&spr=https&sv=2024-11-04&sr=c&sig=6nxSNBB7pLQUAqQf5myIoEwl%2BwNshmR0oaba8OjgLvk%3D';
-        const SAS_READ  = 'sp=r&st=2026-03-06T20:05:50Z&se=2028-03-07T04:20:50Z&spr=https&sv=2024-11-04&sr=c&sig=6nxSNBB7pLQUAqQf5myIoEwl%2BwNshmR0oaba8OjgLvk%3D';
+        const SAS_WRITE = 'sp=rcw&st=2026-03-06T20:15:42Z&se=2028-03-07T04:30:42Z&spr=https&sv=2024-11-04&sr=c&sig=ljWfJVjrrtJ4U%2BQAnDcgSv%2FZGTUqMO9PMzBTWDD1Hig%3D';
+        const SAS_READ  = 'sp=rcw&st=2026-03-06T20:15:42Z&se=2028-03-07T04:30:42Z&spr=https&sv=2024-11-04&sr=c&sig=ljWfJVjrrtJ4U%2BQAnDcgSv%2FZGTUqMO9PMzBTWDD1Hig%3D';
 
         // 4. Subir a Azure Blob Storage usando SAS token
         const url = `https://${AZURE_ACCOUNT}.blob.core.windows.net/${AZURE_CONTAINER}/${fileName}`;
