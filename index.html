@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CIES 2026 – Generador de Poster</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <!-- html2canvas para capturar el poster -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -112,25 +114,30 @@
       font-weight: 900; font-size: 1rem; color: #1a1a2e; letter-spacing: 0.5px;
     }
 
-    #fb-status {
+    #status {
       width: 320px; text-align: center; font-size: 0.8rem; min-height: 20px;
     }
-    #fb-status.logged-in  { color: #a0e63c; }
-    #fb-status.logged-out { color: rgba(255,255,255,0.4); }
-    #fb-status.error      { color: #ff6b6b; }
-    #fb-status.loading    { color: #f0c040; }
+    #status.success { color: #a0e63c; }
+    #status.error   { color: #ff6b6b; }
+    #status.loading { color: #f0c040; }
+    #status.idle    { color: rgba(255,255,255,0.4); }
 
-    .fb-btn {
+    .btn {
       display: flex; align-items: center; justify-content: center; gap: 10px;
-      background: #1877F2; color: #fff; font-family: 'Montserrat', sans-serif;
+      color: #fff; font-family: 'Montserrat', sans-serif;
       font-weight: 700; font-size: 0.95rem; border: none; border-radius: 12px;
       padding: 14px 32px; cursor: pointer; width: 320px;
       transition: background 0.2s, transform 0.15s, opacity 0.2s;
-      box-shadow: 0 8px 24px rgba(24,119,242,0.35);
     }
-    .fb-btn:hover:not(:disabled) { background: #145dbf; transform: translateY(-2px); }
-    .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .fb-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
+
+    .btn-linkedin {
+      background: #0a66c2;
+      box-shadow: 0 8px 24px rgba(10,102,194,0.35);
+    }
+    .btn-linkedin:hover:not(:disabled) { background: #004182; }
 
     .modal-overlay {
       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
@@ -143,7 +150,7 @@
     }
     .modal .icon { font-size: 3rem; margin-bottom: 12px; }
     .modal h2 { font-size: 1.2rem; margin-bottom: 8px; color: #a0e63c; }
-    .modal p { font-size: 0.85rem; opacity: 0.8; margin-bottom: 20px; }
+    .modal p { font-size: 0.85rem; opacity: 0.8; margin-bottom: 20px; line-height: 1.5; }
     .modal button {
       background: #a0e63c; color: #1a1a2e; border: none; border-radius: 10px;
       padding: 10px 28px; font-family: 'Montserrat', sans-serif;
@@ -152,26 +159,6 @@
   </style>
 </head>
 <body>
-
-  <div id="fb-root"></div>
-  <script>
-    window.fbAsyncInit = function() {
-      FB.init({
-        appId: '1989972604948139',
-        cookie: true,
-        xfbml: true,
-        version: 'v19.0'
-      });
-      FB.getLoginStatus(updateStatus);
-    };
-    (function(d, s, id){
-      var js, fjs = d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js = d.createElement(s); js.id = id;
-      js.src = "https://connect.facebook.net/es_ES/sdk.js";
-      fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-  </script>
 
   <h1>Generador de Poster CIES 2026</h1>
 
@@ -207,33 +194,37 @@
     <div class="poster-banner">¡Participaré en la CIES 2026!</div>
   </div>
 
-  <div id="fb-status" class="logged-out">Conecta con Facebook para publicar</div>
+  <div id="status" class="idle">Sube tu foto y escribe tu nombre para continuar</div>
 
-  <button class="fb-btn" id="fbBtn">
-    <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.886v2.269h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
-    Publicar en Facebook
+  <button class="btn btn-linkedin" id="linkedinBtn">
+    <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    Publicar en LinkedIn
   </button>
 
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="icon">🎉</div>
-      <h2>¡Publicado con éxito!</h2>
-      <p>Tu poster CIES 2026 ya está en tu Facebook.</p>
+      <h2>¡Listo para publicar!</h2>
+      <p>Tu poster se subió a Azure. LinkedIn se abrirá con el texto listo — solo haz clic en <strong>"Publicar"</strong>.</p>
       <button onclick="document.getElementById('modalOverlay').classList.remove('show')">Cerrar</button>
     </div>
   </div>
 
   <script>
-    const fileInput  = document.getElementById('fileInput');
-    const photoRing  = document.getElementById('photoRing');
-    const nameInput  = document.getElementById('nameInput');
-    const posterName = document.getElementById('posterName');
-    const fbBtn      = document.getElementById('fbBtn');
-    const fbStatus   = document.getElementById('fb-status');
-    const modal      = document.getElementById('modalOverlay');
+    // ── CONFIG AZURE ──
+    const AZURE_ACCOUNT    = 'storageuss';
+    const AZURE_CONTAINER  = 'cies-posters';
+    const AZURE_KEY        = 'B23Mc4pf+HFU7mwy9BRT0LXUVZ67lSyijF86yhJPWdhB6m5Fl7Fb7w4Ql2uwKLHUmsfnaIbXbEBo+ASt5gHQlA==';
 
-    let userAccessToken = null;
-    let photoDataUrl    = null;
+    const fileInput   = document.getElementById('fileInput');
+    const photoRing   = document.getElementById('photoRing');
+    const nameInput   = document.getElementById('nameInput');
+    const posterName  = document.getElementById('posterName');
+    const linkedinBtn = document.getElementById('linkedinBtn');
+    const statusEl    = document.getElementById('status');
+    const modal       = document.getElementById('modalOverlay');
+
+    let photoDataUrl = null;
 
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -250,76 +241,144 @@
       posterName.textContent = nameInput.value.trim() || 'Tu Nombre Aquí';
     });
 
-    function updateStatus(response) {
-      if (response.status === 'connected') {
-        userAccessToken = response.authResponse.accessToken;
-        fbStatus.textContent = '✅ Conectado con Facebook. Listo para publicar.';
-        fbStatus.className = 'logged-in';
-      } else {
-        userAccessToken = null;
-        fbStatus.textContent = 'Conecta con Facebook para publicar';
-        fbStatus.className = 'logged-out';
-      }
-    }
+    linkedinBtn.addEventListener('click', async () => {
+      if (!photoDataUrl) { alert('⚠️ Primero sube tu foto.'); return; }
+      if (!nameInput.value.trim()) { alert('⚠️ Escribe tu nombre.'); return; }
 
-    fbBtn.addEventListener('click', () => {
-      if (!photoDataUrl) {
-        alert('⚠️ Primero sube tu foto.');
-        return;
-      }
-      if (!userAccessToken) {
-        FB.login((response) => {
-          if (response.authResponse) {
-            updateStatus(response);
-            publicar();
-          } else {
-            fbStatus.textContent = '❌ No se pudo conectar con Facebook.';
-            fbStatus.className = 'error';
-          }
-        }, { scope: 'public_profile,publish_actions' });
-      } else {
-        publicar();
+      linkedinBtn.disabled = true;
+      statusEl.textContent = '⏳ Generando poster...';
+      statusEl.className = 'loading';
+
+      try {
+        // 1. Capturar poster como imagen
+        const canvas = await html2canvas(document.getElementById('poster'), {
+          scale: 2, useCORS: true, backgroundColor: null
+        });
+
+        statusEl.textContent = '⏳ Subiendo imagen a Azure...';
+
+        // 2. Convertir canvas a blob
+        const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+
+        // 3. Nombre único para la imagen
+        const fileName = `poster-${Date.now()}.jpg`;
+
+        // 4. Subir a Azure Blob Storage usando la API REST
+        const url = `https://${AZURE_ACCOUNT}.blob.core.windows.net/${AZURE_CONTAINER}/${fileName}`;
+        const date = new Date().toUTCString();
+        const contentType = 'image/jpeg';
+
+        // Generar firma HMAC-SHA256 para autenticación
+        const signature = await generateAzureSignature(fileName, date, contentType, blob.size);
+
+        const uploadResponse = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'x-ms-blob-type': 'BlockBlob',
+            'x-ms-date': date,
+            'x-ms-version': '2020-04-08',
+            'Content-Type': contentType,
+            'Content-Length': blob.size,
+            'Authorization': signature
+          },
+          body: blob
+        });
+
+        if (!uploadResponse.ok) throw new Error('Error subiendo imagen a Azure');
+
+        // 5. URL pública con SAS token (válido 1 año)
+        const sasToken = await generateSasToken(fileName);
+        const imageUrl = `${url}?${sasToken}`;
+
+        statusEl.textContent = '✅ Imagen subida. Abriendo LinkedIn...';
+        statusEl.className = 'success';
+
+        // 6. Abrir LinkedIn con texto e imagen
+        const texto = `¡Yo participaré en la II Cumbre Iberoamericana de Educación Superior #CIES2026, evento de innovación educativa organizado por la Universidad Señor de Sipán #USS!
+📅 Del 5 al 7 de mayo - Chiclayo, Perú
+🔗 Inscríbete: https://cumbre.uss.edu.pe
+🖼️ ${imageUrl}`;
+
+        const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(texto)}`;
+        window.open(linkedinUrl, '_blank');
+
+        modal.classList.add('show');
+
+      } catch (err) {
+        statusEl.textContent = '❌ Error: ' + err.message;
+        statusEl.className = 'error';
+        console.error(err);
+      } finally {
+        linkedinBtn.disabled = false;
       }
     });
 
-    function publicar() {
-      fbStatus.textContent = '⏳ Publicando...';
-      fbStatus.className = 'loading';
-      fbBtn.disabled = true;
+    // ── Generar firma HMAC-SHA256 para Azure ──
+    async function generateAzureSignature(fileName, date, contentType, contentLength) {
+      const stringToSign = [
+        'PUT',
+        '',             // Content-Encoding
+        '',             // Content-Language
+        contentLength,  // Content-Length
+        '',             // Content-MD5
+        contentType,    // Content-Type
+        '',             // Date
+        '',             // If-Modified-Since
+        '',             // If-Match
+        '',             // If-None-Match
+        '',             // If-Unmodified-Since
+        '',             // Range
+        `x-ms-blob-type:BlockBlob\nx-ms-date:${date}\nx-ms-version:2020-04-08`,
+        `/${AZURE_ACCOUNT}/${AZURE_CONTAINER}/${fileName}`
+      ].join('\n');
 
-      const byteString = atob(photoDataUrl.split(',')[1]);
-      const mimeType   = photoDataUrl.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-      const blob = new Blob([ab], { type: mimeType });
+      const keyBytes = Uint8Array.from(atob(AZURE_KEY), c => c.charCodeAt(0));
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const signatureBytes = await crypto.subtle.sign(
+        'HMAC', cryptoKey, new TextEncoder().encode(stringToSign)
+      );
+      const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+      return `SharedKey ${AZURE_ACCOUNT}:${signatureB64}`;
+    }
 
-      const formData = new FormData();
-      formData.append('source', blob, 'cies-poster.jpg');
-      formData.append('message', '🎓 ¡Participaré en la CIES 2026! II Cumbre Iberoamericana de Educación Superior. Del 5 al 7 de mayo en Chiclayo, Perú. #CIES2026 #EducaciónSuperior');
-      formData.append('access_token', userAccessToken);
+    // ── Generar SAS Token ──
+    async function generateSasToken(fileName) {
+      const now = new Date();
+      const expiry = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+      const start  = now.toISOString().replace(/\.\d+Z$/, 'Z');
+      const end    = expiry.toISOString().replace(/\.\d+Z$/, 'Z');
 
-      fetch('https://graph.facebook.com/v19.0/me/photos', {
-        method: 'POST',
-        body: formData
-      })
-      .then(r => r.json())
-      .then(data => {
-        fbBtn.disabled = false;
-        if (data.id) {
-          fbStatus.textContent = '✅ ¡Publicado exitosamente!';
-          fbStatus.className = 'logged-in';
-          modal.classList.add('show');
-        } else {
-          throw new Error(data.error?.message || 'Error desconocido');
-        }
-      })
-      .catch(err => {
-        fbBtn.disabled = false;
-        fbStatus.textContent = '❌ Error: ' + err.message;
-        fbStatus.className = 'error';
-        console.error(err);
-      });
+      const stringToSign = [
+        'r',                    // permissions
+        start,                  // start
+        end,                    // expiry
+        `/${AZURE_ACCOUNT}/${AZURE_CONTAINER}/${fileName}`,
+        '',                     // identifier
+        '',                     // IP
+        'https',                // protocol
+        '2020-04-08',           // version
+        'b',                    // resource (blob)
+        '',                     // snapshot
+        '',                     // encryption scope
+        '',                     // rscc
+        '',                     // rscd
+        '',                     // rsce
+        '',                     // rscl
+        ''                      // rsct
+      ].join('\n');
+
+      const keyBytes = Uint8Array.from(atob(AZURE_KEY), c => c.charCodeAt(0));
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sigBytes = await crypto.subtle.sign(
+        'HMAC', cryptoKey, new TextEncoder().encode(stringToSign)
+      );
+      const sig = encodeURIComponent(btoa(String.fromCharCode(...new Uint8Array(sigBytes))));
+
+      return `sv=2020-04-08&st=${encodeURIComponent(start)}&se=${encodeURIComponent(end)}&sr=b&sp=r&spr=https&sig=${sig}`;
     }
   </script>
 
