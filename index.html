@@ -204,8 +204,15 @@
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="icon">🎉</div>
-      <h2>¡Listo para publicar!</h2>
-      <p>Tu poster se subió a Azure. LinkedIn se abrirá con el texto listo — solo haz clic en <strong>"Publicar"</strong>.</p>
+      <h2>¡Casi listo!</h2>
+      <p>
+        Tu poster está en Azure y la <strong>URL fue copiada al portapapeles</strong>.<br><br>
+        En LinkedIn:<br>
+        1. Verás el texto listo ✅<br>
+        2. Haz clic en el ícono 🖼️ de imagen<br>
+        3. Pega la URL con <strong>Ctrl+V</strong><br>
+        4. Clic en <strong>"Publicar"</strong>
+      </p>
       <button onclick="document.getElementById('modalOverlay').classList.remove('show')">Cerrar</button>
     </div>
   </div>
@@ -263,41 +270,40 @@
         // 3. Nombre único para la imagen
         const fileName = `poster-${Date.now()}.jpg`;
 
-        // 4. Subir a Azure Blob Storage usando la API REST
+        // SAS token del contenedor con permisos lectura+escritura (válido hasta 2028)
+        const SAS_WRITE = 'sp=rcw&st=2026-03-06T20:05:50Z&se=2028-03-07T04:20:50Z&spr=https&sv=2024-11-04&sr=c&sig=6nxSNBB7pLQUAqQf5myIoEwl%2BwNshmR0oaba8OjgLvk%3D';
+        const SAS_READ  = 'sp=r&st=2026-03-06T20:05:50Z&se=2028-03-07T04:20:50Z&spr=https&sv=2024-11-04&sr=c&sig=6nxSNBB7pLQUAqQf5myIoEwl%2BwNshmR0oaba8OjgLvk%3D';
+
+        // 4. Subir a Azure Blob Storage usando SAS token
         const url = `https://${AZURE_ACCOUNT}.blob.core.windows.net/${AZURE_CONTAINER}/${fileName}`;
-        const date = new Date().toUTCString();
-        const contentType = 'image/jpeg';
 
-        // Generar firma HMAC-SHA256 para autenticación
-        const signature = await generateAzureSignature(fileName, date, contentType, blob.size);
-
-        const uploadResponse = await fetch(url, {
+        const uploadResponse = await fetch(`${url}?${SAS_WRITE}`, {
           method: 'PUT',
           headers: {
             'x-ms-blob-type': 'BlockBlob',
-            'x-ms-date': date,
-            'x-ms-version': '2020-04-08',
-            'Content-Type': contentType,
-            'Content-Length': blob.size,
-            'Authorization': signature
+            'Content-Type': 'image/jpeg',
           },
           body: blob
         });
 
-        if (!uploadResponse.ok) throw new Error('Error subiendo imagen a Azure');
+        if (!uploadResponse.ok) {
+          const errText = await uploadResponse.text();
+          throw new Error('Error subiendo imagen: ' + errText);
+        }
 
-        // 5. URL pública con SAS token (válido 1 año)
-        const sasToken = await generateSasToken(fileName);
-        const imageUrl = `${url}?${sasToken}`;
+        // 5. URL pública con SAS token de lectura
+        const imageUrl = `${url}?${SAS_READ}`;
 
         statusEl.textContent = '✅ Imagen subida. Abriendo LinkedIn...';
         statusEl.className = 'success';
 
-        // 6. Abrir LinkedIn con texto e imagen
+        // 6. Copiar URL de imagen al portapapeles
+        await navigator.clipboard.writeText(imageUrl);
+
+        // 7. Abrir LinkedIn con solo el texto (sin URL larga)
         const texto = `¡Yo participaré en la II Cumbre Iberoamericana de Educación Superior #CIES2026, evento de innovación educativa organizado por la Universidad Señor de Sipán #USS!
 📅 Del 5 al 7 de mayo - Chiclayo, Perú
-🔗 Inscríbete: https://cumbre.uss.edu.pe
-🖼️ ${imageUrl}`;
+🔗 Inscríbete: https://cumbre.uss.edu.pe`;
 
         const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(texto)}`;
         window.open(linkedinUrl, '_blank');
@@ -312,37 +318,6 @@
         linkedinBtn.disabled = false;
       }
     });
-
-    // ── Generar firma HMAC-SHA256 para Azure ──
-    async function generateAzureSignature(fileName, date, contentType, contentLength) {
-      const stringToSign = [
-        'PUT',
-        '',             // Content-Encoding
-        '',             // Content-Language
-        contentLength,  // Content-Length
-        '',             // Content-MD5
-        contentType,    // Content-Type
-        '',             // Date
-        '',             // If-Modified-Since
-        '',             // If-Match
-        '',             // If-None-Match
-        '',             // If-Unmodified-Since
-        '',             // Range
-        `x-ms-blob-type:BlockBlob\nx-ms-date:${date}\nx-ms-version:2020-04-08`,
-        `/${AZURE_ACCOUNT}/${AZURE_CONTAINER}/${fileName}`
-      ].join('\n');
-
-      const keyBytes = Uint8Array.from(atob(AZURE_KEY), c => c.charCodeAt(0));
-      const cryptoKey = await crypto.subtle.importKey(
-        'raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-      );
-      const signatureBytes = await crypto.subtle.sign(
-        'HMAC', cryptoKey, new TextEncoder().encode(stringToSign)
-      );
-      const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
-      return `SharedKey ${AZURE_ACCOUNT}:${signatureB64}`;
-    }
-
     // ── Generar SAS Token ──
     async function generateSasToken(fileName) {
       const now = new Date();
