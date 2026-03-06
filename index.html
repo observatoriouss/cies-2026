@@ -5,8 +5,151 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CIES 2026 – Generador de Poster</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet"/>
-  
-  <link rel="stylesheet" href="main.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 16px;
+      gap: 24px;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .upload-panel {
+      background: rgba(255,255,255,0.06);
+      border: 2px dashed rgba(160, 230, 60, 0.5);
+      border-radius: 16px;
+      padding: 20px 32px;
+      text-align: center;
+      color: #ccc;
+      cursor: pointer;
+      transition: border-color 0.3s, background 0.3s;
+      width: 320px;
+    }
+    .upload-panel:hover { border-color: #a0e63c; background: rgba(160,230,60,0.08); }
+    .upload-panel input { display: none; }
+    .upload-panel .icon { font-size: 2rem; margin-bottom: 6px; }
+    .upload-panel p { font-size: 0.85rem; }
+
+    .name-input { width: 320px; }
+    .name-input input {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(160,230,60,0.4);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .name-input input::placeholder { color: rgba(255,255,255,0.3); font-weight: 400; text-transform: none; letter-spacing: 0; }
+    .name-input input:focus { border-color: #a0e63c; }
+
+    #poster {
+      width: 360px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(160deg, #6a0dad 0%, #4b0082 60%, #3a006f 100%);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    #poster::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='440'%3E%3Cellipse cx='100' cy='280' rx='80' ry='130' fill='none' stroke='rgba(255,255,255,0.07)' stroke-width='1'/%3E%3Cellipse cx='220' cy='260' rx='60' ry='110' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    .poster-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px 14px; }
+    .cies-badge {
+      background: #a0e63c; color: #1a1a2e; font-weight: 900; font-size: 1rem;
+      padding: 6px 10px; border-radius: 8px; line-height: 1.1; text-align: center; flex-shrink: 0;
+    }
+    .cies-badge span { font-size: 0.65rem; display: block; font-weight: 700; }
+    .poster-title { color: #fff; font-size: 0.9rem; line-height: 1.35; }
+    .poster-title strong { font-weight: 900; }
+    .poster-subtitle {
+      background: rgba(255,255,255,0.15); color: #e0e0e0; font-size: 0.62rem;
+      padding: 3px 10px; border-radius: 20px; margin-top: 5px; display: inline-block;
+    }
+
+    .flags-row { display: flex; justify-content: center; gap: 5px; padding: 6px 16px 14px; flex-wrap: wrap; }
+    .flag { font-size: 1.35rem; }
+
+    .photo-ring {
+      width: 200px; height: 200px; border-radius: 50%; border: 5px solid #a0e63c;
+      margin: 0 auto 18px; overflow: hidden; background: #2a004a;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .photo-ring img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-ring .placeholder { color: rgba(255,255,255,0.3); font-size: 0.75rem; text-align: center; padding: 12px; }
+
+    .poster-name {
+      text-align: center; color: #fff; font-size: 1.15rem; font-weight: 900;
+      letter-spacing: 1.5px; text-transform: uppercase; padding: 0 16px 16px;
+    }
+    .poster-banner {
+      background: #a0e63c; padding: 12px 16px; text-align: center;
+      font-weight: 900; font-size: 1rem; color: #1a1a2e; letter-spacing: 0.5px;
+    }
+
+    #fb-status {
+      width: 320px; text-align: center; font-size: 0.8rem; min-height: 20px;
+    }
+    #fb-status.logged-in  { color: #a0e63c; }
+    #fb-status.logged-out { color: rgba(255,255,255,0.4); }
+    #fb-status.error      { color: #ff6b6b; }
+    #fb-status.loading    { color: #f0c040; }
+
+    .fb-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #1877F2; color: #fff; font-family: 'Montserrat', sans-serif;
+      font-weight: 700; font-size: 0.95rem; border: none; border-radius: 12px;
+      padding: 14px 32px; cursor: pointer; width: 320px;
+      transition: background 0.2s, transform 0.15s, opacity 0.2s;
+      box-shadow: 0 8px 24px rgba(24,119,242,0.35);
+    }
+    .fb-btn:hover:not(:disabled) { background: #145dbf; transform: translateY(-2px); }
+    .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .fb-btn svg { width: 22px; height: 22px; fill: #fff; flex-shrink: 0; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      z-index: 100; align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #2a004a; border: 2px solid #a0e63c; border-radius: 18px;
+      padding: 32px; text-align: center; max-width: 320px; color: #fff;
+    }
+    .modal .icon { font-size: 3rem; margin-bottom: 12px; }
+    .modal h2 { font-size: 1.2rem; margin-bottom: 8px; color: #a0e63c; }
+    .modal p { font-size: 0.85rem; opacity: 0.8; margin-bottom: 20px; }
+    .modal button {
+      background: #a0e63c; color: #1a1a2e; border: none; border-radius: 10px;
+      padding: 10px 28px; font-family: 'Montserrat', sans-serif;
+      font-weight: 700; cursor: pointer; font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -80,6 +223,105 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <script>
+    const fileInput  = document.getElementById('fileInput');
+    const photoRing  = document.getElementById('photoRing');
+    const nameInput  = document.getElementById('nameInput');
+    const posterName = document.getElementById('posterName');
+    const fbBtn      = document.getElementById('fbBtn');
+    const fbStatus   = document.getElementById('fb-status');
+    const modal      = document.getElementById('modalOverlay');
+
+    let userAccessToken = null;
+    let photoDataUrl    = null;
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        photoDataUrl = ev.target.result;
+        photoRing.innerHTML = `<img src="${photoDataUrl}" alt="Foto"/>`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    nameInput.addEventListener('input', () => {
+      posterName.textContent = nameInput.value.trim() || 'Tu Nombre Aquí';
+    });
+
+    function updateStatus(response) {
+      if (response.status === 'connected') {
+        userAccessToken = response.authResponse.accessToken;
+        fbStatus.textContent = '✅ Conectado con Facebook. Listo para publicar.';
+        fbStatus.className = 'logged-in';
+      } else {
+        userAccessToken = null;
+        fbStatus.textContent = 'Conecta con Facebook para publicar';
+        fbStatus.className = 'logged-out';
+      }
+    }
+
+    fbBtn.addEventListener('click', () => {
+      if (!photoDataUrl) {
+        alert('⚠️ Primero sube tu foto.');
+        return;
+      }
+      if (!userAccessToken) {
+        FB.login((response) => {
+          if (response.authResponse) {
+            updateStatus(response);
+            publicar();
+          } else {
+            fbStatus.textContent = '❌ No se pudo conectar con Facebook.';
+            fbStatus.className = 'error';
+          }
+        }, { scope: 'public_profile,publish_actions' });
+      } else {
+        publicar();
+      }
+    });
+
+    function publicar() {
+      fbStatus.textContent = '⏳ Publicando...';
+      fbStatus.className = 'loading';
+      fbBtn.disabled = true;
+
+      const byteString = atob(photoDataUrl.split(',')[1]);
+      const mimeType   = photoDataUrl.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: mimeType });
+
+      const formData = new FormData();
+      formData.append('source', blob, 'cies-poster.jpg');
+      formData.append('message', '🎓 ¡Participaré en la CIES 2026! II Cumbre Iberoamericana de Educación Superior. Del 5 al 7 de mayo en Chiclayo, Perú. #CIES2026 #EducaciónSuperior');
+      formData.append('access_token', userAccessToken);
+
+      fetch('https://graph.facebook.com/v19.0/me/photos', {
+        method: 'POST',
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        fbBtn.disabled = false;
+        if (data.id) {
+          fbStatus.textContent = '✅ ¡Publicado exitosamente!';
+          fbStatus.className = 'logged-in';
+          modal.classList.add('show');
+        } else {
+          throw new Error(data.error?.message || 'Error desconocido');
+        }
+      })
+      .catch(err => {
+        fbBtn.disabled = false;
+        fbStatus.textContent = '❌ Error: ' + err.message;
+        fbStatus.className = 'error';
+        console.error(err);
+      });
+    }
+  </script>
+
 </body>
 </html>
