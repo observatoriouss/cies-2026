@@ -206,11 +206,11 @@
       <div class="icon">🎉</div>
       <h2>¡Casi listo!</h2>
       <p>
-        Tu poster está en Azure y la <strong>URL fue copiada al portapapeles</strong>.<br><br>
+        Tu poster se descargó automáticamente 📥<br><br>
         En LinkedIn:<br>
         1. Verás el texto listo ✅<br>
         2. Haz clic en el ícono 🖼️ de imagen<br>
-        3. Pega la URL con <strong>Ctrl+V</strong><br>
+        3. Selecciona <strong>poster-cies2026.jpg</strong><br>
         4. Clic en <strong>"Publicar"</strong>
       </p>
       <button onclick="document.getElementById('modalOverlay').classList.remove('show')">Cerrar</button>
@@ -294,21 +294,24 @@
         // 5. URL pública con SAS token de lectura
         const imageUrl = `${url}?${SAS_READ}`;
 
-        statusEl.textContent = '✅ Imagen subida. Abriendo LinkedIn...';
+        statusEl.textContent = '✅ Descargando poster...';
         statusEl.className = 'success';
 
-        // 6. Copiar URL de imagen al portapapeles
-        await navigator.clipboard.writeText(imageUrl);
+        // 6. Descargar poster automáticamente
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'poster-cies2026.jpg';
+        downloadLink.click();
 
-        // 7. Abrir LinkedIn con solo el texto (sin URL larga)
-        const texto = `¡Yo participaré en la II Cumbre Iberoamericana de Educación Superior #CIES2026, evento de innovación educativa organizado por la Universidad Señor de Sipán #USS!
+        // 7. Abrir LinkedIn con el texto listo
+        setTimeout(() => {
+          const texto = `¡Yo participaré en la II Cumbre Iberoamericana de Educación Superior #CIES2026, evento de innovación educativa organizado por la Universidad Señor de Sipán #USS!
 📅 Del 5 al 7 de mayo - Chiclayo, Perú
 🔗 Inscríbete: https://cumbre.uss.edu.pe`;
-
-        const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(texto)}`;
-        window.open(linkedinUrl, '_blank');
-
-        modal.classList.add('show');
+          const linkedinUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(texto)}`;
+          window.open(linkedinUrl, '_blank');
+          modal.classList.add('show');
+        }, 1000);
 
       } catch (err) {
         statusEl.textContent = '❌ Error: ' + err.message;
