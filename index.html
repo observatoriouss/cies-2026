@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CIES 2026 – Generador de Poster</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet"/>
+  
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+  <div id="fb-root"></div>
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId: '1989972604948139',
+        cookie: true,
+        xfbml: true,
+        version: 'v19.0'
+      });
+      FB.getLoginStatus(updateStatus);
+    };
+    (function(d, s, id){
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "https://connect.facebook.net/es_ES/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+  </script>
+
+  <h1>Generador de Poster CIES 2026</h1>
+
+  <label class="upload-panel" for="fileInput">
+    <div class="icon">📷</div>
+    <p>Haz clic para subir tu foto</p>
+    <input type="file" id="fileInput" accept="image/*"/>
+  </label>
+
+  <div class="name-input">
+    <input type="text" id="nameInput" placeholder="Escribe tu nombre completo" maxlength="40"/>
+  </div>
+
+  <div id="poster">
+    <div class="poster-header">
+      <div class="cies-badge"><span>2026</span>CIES</div>
+      <div class="poster-title">
+        <strong>II Cumbre</strong> Iberoamericana<br>
+        de <strong>Educación</strong> Superior
+        <div class="poster-subtitle">Del 5 al 7 de mayo · Chiclayo – Perú</div>
+      </div>
+    </div>
+    <div class="flags-row">
+      <span class="flag">🇵🇪</span><span class="flag">🇨🇴</span><span class="flag">🇲🇽</span>
+      <span class="flag">🇦🇷</span><span class="flag">🇨🇱</span><span class="flag">🇧🇷</span>
+      <span class="flag">🇪🇨</span><span class="flag">🇧🇴</span><span class="flag">🇵🇦</span>
+      <span class="flag">🇻🇪</span>
+    </div>
+    <div class="photo-ring" id="photoRing">
+      <div class="placeholder">Tu foto<br>aparecerá aquí</div>
+    </div>
+    <div class="poster-name" id="posterName">Tu Nombre Aquí</div>
+    <div class="poster-banner">¡Participaré en la CIES 2026!</div>
+  </div>
+
+  <div id="fb-status" class="logged-out">Conecta con Facebook para publicar</div>
+
+  <button class="fb-btn" id="fbBtn">
+    <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.886v2.269h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+    Publicar en Facebook
+  </button>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="icon">🎉</div>
+      <h2>¡Publicado con éxito!</h2>
+      <p>Tu poster CIES 2026 ya está en tu Facebook.</p>
+      <button onclick="document.getElementById('modalOverlay').classList.remove('show')">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
